@@ -11,6 +11,7 @@ class Mangakakalot:
         self.__load_genres()
         return
     
+    
     def get_genre_link(self, genre: str = "ALL") -> str:
         """Get the genre link for a given genre!
 
@@ -30,6 +31,7 @@ class Mangakakalot:
         except KeyError:
             raise ValueError("Invalid genre")
         return link
+
 
     def get_recent_updates(self, page_limit: int = 1) -> dict:
         """Get the recently added manga.
@@ -60,6 +62,37 @@ class Mangakakalot:
                 }
                 i += 1
         return recent_data
+
+
+    def search_manga(self, name: str, page_limit: int = 1):
+        """Search for a manga
+
+        Args:
+            name (str): Name of the manga.
+            page_limit (int, optional): No. of pages to get results from. Defaults to 1.
+        """
+        search_data = {}
+        fname = name.replace(" ", "_").replace("!", "").replace(",", "").replace("?", "").replace("~", "").replace("|", "").replace("(", "").replace(")", "")
+        i = 1
+        for n in range(1, page_limit + 1):
+            url = f"https://mangakakalot.com/search/story/{fname}?page={n}"
+            response = scraper.get(url).text
+            soup = BeautifulSoup(response, 'lxml')
+            div_lst = soup.find("div", attrs={"class":"panel_story_list"}).find_all("div", attrs={"class":"story_item"})
+            for div in div_lst:
+                nsoup = BeautifulSoup(str(div), 'lxml')
+                img = nsoup.find("img")['src']
+                title = nsoup.find("h3").find("a").text
+                url = nsoup.find("h3").find("a")['href']
+                chap = nsoup.find_all("em", attrs={"class":"story_chapter"})[0].find("a").text.strip()
+                search_data[str(i)] = {
+                    "Title": title,
+                    "Cover": img,
+                    "Url": url,
+                    "Latest_Chapter": chap
+                }
+                i += 1
+        return search_data
 
 
     def get_mange_info(self, url):

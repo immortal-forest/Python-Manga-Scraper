@@ -72,6 +72,38 @@ class MangaNato():
         return recent_data
         
         
+    def search_manga(self, name: str, page_limit: int = 1):
+        """Search for a manga
+
+        Args:
+            name (str): Name of the manga.
+            page_limit (int, optional): No. of pages to get results from. Defaults to 1.
+        """
+        search_data = {}
+        fname = name.replace(" ", "_").replace("!", "").replace(",", "").replace("?", "").replace("~", "").replace("|", "").replace("(", "").replace(")", "")
+        i = 1
+        for n in range(1, page_limit + 1):
+            url = f"https://manganato.com/search/story/{fname}?page={n}"
+            response = scraper.get(url).text
+            soup = BeautifulSoup(response, 'lxml')
+            div_lst = soup.find("div", attrs={"class":"panel-search-story"}).find_all("div", attrs={"class":"search-story-item"})
+            for div in div_lst:
+                nsoup = BeautifulSoup(str(div), 'lxml')
+                img = nsoup.find("img")['src']
+                nsoup = nsoup.find("div", attrs={"class": "item-right"})
+                title = nsoup.find("h3").find("a").text
+                url = nsoup.find("h3").find("a")['href']
+                chap = nsoup.find_all("a", attrs={"class":"item-chapter a-h text-nowrap"})[0].text.strip()
+                search_data[str(i)] = {
+                    "Title": title,
+                    "Cover": img,
+                    "Url": url,
+                    "Latest_Chapter": chap
+                }
+                i += 1
+        return search_data
+        
+        
     def get_mange_info(self, url) -> dict:
         """Gets the manga info from a url.
 
