@@ -3,6 +3,7 @@ import os
 import cloudscraper
 from bs4 import BeautifulSoup
 import requests
+import urllib3
 
 scraper = cloudscraper.create_scraper(browser='chrome', delay=7)
 
@@ -172,7 +173,7 @@ class MangaNato():
         soup = BeautifulSoup(response, 'lxml')
         a_lst = soup.find("div", attrs={"class": "panel-breadcrumb"}).find_all("a", attrs={"class":"a-h"})
         title = a_lst[1].text.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
-        chapter = a_lst[2].text.strip()
+        chapter = a_lst[2].text.strip().replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
         if os.path.exists(path) and os.path.exists(os.path.join(path, title)):
             # Folder with title name already exists
             if not os.path.exists(os.path.join(path, title, chapter)):
@@ -182,11 +183,15 @@ class MangaNato():
             os.mkdir(os.path.join(path, title, chapter))
         
         print(f"Downloading {len(img_urls)} images!")
+        http = urllib3.PoolManager()
         for i, img in enumerate(img_urls):
-            cont = requests.get(img, headers=self.header).content
+            r = http.request("GET", img, headers=self.header)
             with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
-                file.write(cont)
-        print("Finished!")
+                file.write(r.data)
+        #for i, img in enumerate(img_urls):
+        #    cont = requests.get(img, headers=self.header).content
+        #    with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
+        #        file.write(cont)
         
         
     def download_manga(self, url: str, path: str):
@@ -201,7 +206,6 @@ class MangaNato():
         info_block = soup.find("div", attrs={"class":"story-info-right"})
         title = info_block.find("h1").text.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
         chapters = [[li.find("a").text, li.find("a")['href']] for li in soup.find("div", attrs={"class":'panel-story-chapter-list'}).find("ul", attrs={"class":"row-content-chapter"}).find_all("li", attrs={"class":"a-h"})]
-        print(title, f"Total Chapters: {len(chapters)}",sep="\n")
         for i, chap in enumerate(chapters[::-1]):
             chapter = chap[0].replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
             c_url = chap[1]
@@ -213,12 +217,15 @@ class MangaNato():
             else:
                 os.mkdir(os.path.join(path, title))
                 os.mkdir(os.path.join(path, title, chapter))
-            print(f"    Downloading Chapter {i + 1}")
+            http = urllib3.PoolManager()
             for i, img in enumerate(c_imgs):
-                cont = requests.get(img, headers=self.header).content
+                r = http.request("GET", img, headers=self.header)
                 with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
-                    file.write(cont)
-            print("    Finished!")
+                    file.write(r.data)
+            #for i, img in enumerate(c_imgs):
+            #    cont = requests.get(img, headers=self.header).content
+            #    with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
+            #        file.write(cont)
             
 
 
