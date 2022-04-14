@@ -2,7 +2,6 @@ import json
 import os
 import cloudscraper
 from bs4 import BeautifulSoup
-import requests
 import urllib3
 
 scraper = cloudscraper.create_scraper(browser='chrome', delay=7)
@@ -188,10 +187,6 @@ class MangaNato():
             r = http.request("GET", img, headers=self.header)
             with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
                 file.write(r.data)
-        #for i, img in enumerate(img_urls):
-        #    cont = requests.get(img, headers=self.header).content
-        #    with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
-        #        file.write(cont)
         
         
     def download_manga(self, url: str, path: str):
@@ -222,10 +217,6 @@ class MangaNato():
                 r = http.request("GET", img, headers=self.header)
                 with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
                     file.write(r.data)
-            #for i, img in enumerate(c_imgs):
-            #    cont = requests.get(img, headers=self.header).content
-            #    with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
-            #        file.write(cont)
             
 
 
