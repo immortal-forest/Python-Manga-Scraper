@@ -113,7 +113,7 @@ class MangaNato():
         return search_data
         
         
-    def get_mange_info(self, url) -> dict:
+    def get_manga_info(self, url) -> dict:
         """Gets the manga info from a url.
 
         Args:

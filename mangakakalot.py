@@ -104,7 +104,7 @@ class Mangakakalot:
         return search_data
 
 
-    def get_mange_info(self, url):
+    def get_manga_info(self, url):
         """Gets the manga info from a url.
 
         Args:
