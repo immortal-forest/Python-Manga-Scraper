@@ -128,7 +128,7 @@ class Mangakakalot:
             "Cover": cover
         }
         if "Genre" in main_table[-4].text:
-            info_data['Genre'] = [gen.text for gen in info_block[-4].find_all("a")]
+            info_data['Genre'] = [gen.text for gen in main_table[-4].find_all("a")]
         else:
             for li in main_table:
                 if "Genre" in li.text:
