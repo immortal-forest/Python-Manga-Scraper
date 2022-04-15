@@ -1,5 +1,5 @@
 # Manga-Scraper
-Manga Scrapers that use **cloudscraper** and **BeautifulSoup** to scrape manga data from different sites.
+Manga Scrapers written in Python that use **cloudscraper** and **BeautifulSoup** to scrape manga data from different sites.
 
 
 Available sites:
