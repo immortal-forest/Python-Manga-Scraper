@@ -116,38 +116,41 @@ class Mangakakalot:
         info_data = {}
         rsp = scraper.get(url).text
         soup = BeautifulSoup(rsp, 'lxml')
-        cover = soup.find("div", attrs={"class":"story-info-left"}).find("img")['src']
-        plot = soup.find('div', attrs={"class":"panel-story-info-description"}).text[15:].replace("<br>", "").replace("Summary:", "")[2:]
-        info_block = soup.find("div", attrs={"class":"story-info-right"})
+        cover = soup.find("div", attrs={"class":"manga-info-pic"}).find("img")['src']
+        plot = soup.find('div', attrs={"id":"noidungm"}).text[15:].replace("<br>", "").replace("Summary:", "")[2:]
+        info_block = soup.find("ul", attrs={"class":"manga-info-text"})
         title = info_block.find("h1").text
         
-        main_table = info_block.find("table", attrs={'class':'variations-tableInfo'}).find_all("tr")
+        main_table = info_block.find_all("li")
         info_data = {
             "Title": title,
-            "Plot": plot if "MangaNato.com" not in plot else "",
+            "Plot": plot if "MangaNato.com" not in plot or "Mangakakalot.com" not in plot else "",
             "Cover": cover
         }
-        info_data['Genre'] = [gen.text for gen in main_table[-1].find("td", attrs={"class":"table-value"}).find_all("a", attrs={"class":"a-h"})]
+        if "Genre" in main_table[-4].text:
+            info_data['Genre'] = [gen.text for gen in info_block[-4].find_all("a")]
+        else:
+            for li in main_table:
+                if "Genre" in li.text:
+                    info_data['Genre'] = [gen.text for gen in li.find_all("a")]
+        #info_data['Genre'] = [gen.text for gen in info_block[-4].find_all("a") if "Genre" info_block[-4].text]
         # for only chapter (with name) no. ------> li.find("a").text[8:]
         # [['chapeter no. with name', 'link','date'], .......]
         
-        info_data['Chapters'] = [[li.find("a").text, li.find("a")['href'], li.find("span", attrs={"class":"chapter-time text-nowrap"}).text] for li in soup.find("div", attrs={"class":'panel-story-chapter-list'}).find("ul", attrs={"class":"row-content-chapter"}).find_all("li", attrs={"class":"a-h"})]
-        z = main_table.pop(-1)
-        try:
-            alternative_name = main_table[0].find("h2").text.split(" ; ")
-            info_data["Alternative_names"] = alternative_name
-        except (AttributeError, IndexError):
-            pass
-        try:
-            authors = main_table[1].find("a", attrs={"class":"a-h"}).text.split(", ")
-            info_data['Authors'] = authors
-        except (AttributeError, IndexError):
-            pass
-        try:
-            status = main_table[2].find("td", attrs={"class":"table-value"}).text
-            info_data['Status'] = status
-        except (AttributeError, IndexError):
-            pass
+        info_data['Chapters'] = [[li.find("a").text, li.find("a")['href'], li.find_all("span")[-1].text] for li in soup.find("div", attrs={"class":'manga-info-chapter'}).find("div", attrs={"class":"chapter-list"}).find_all("div", attrs={"class":"row"})]
+        alternative_name = info_block.find("h2").text.replace("Alternative : ", "").split(" ; ")
+        info_data["Alternative_names"] = alternative_name
+        
+        if "Author" in main_table[1].text:
+            authors = [i.text for i in main_table[1].find_all("a")]
+        else:
+            for li in main_table:
+                if "Author" in li.text:
+                    authors = [i.text for i in li.find_all("a")]
+        info_data['Authors'] = authors
+        
+        status = main_table[2].text.replace("Status : ", "") if "Status" in main_table[2].text else "Updating"
+        info_data['Status'] = status
         return info_data
     
     
@@ -161,9 +164,9 @@ class Mangakakalot:
         img_urls = self.get_chapter_images(url)
         response = scraper.get(url).text
         soup = BeautifulSoup(response, 'lxml')
-        a_lst = soup.find("div", attrs={"class": "panel-breadcrumb"}).find_all("a", attrs={"class":"a-h"})
-        title = a_lst[1].text.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
-        chapter = a_lst[2].text.strip().replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
+        a_lst = soup.find("div", attrs={"class": "breadcrumb breadcrumbs bred_doc"}).find_all("a", attrs={"itemprop":"item"})
+        title = a_lst[1].find("span").text.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
+        chapter = a_lst[2].find("span").text.strip().replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
         if os.path.exists(path) and os.path.exists(os.path.join(path, title)):
             # Folder with title name already exists
             if not os.path.exists(os.path.join(path, title, chapter)):
@@ -189,9 +192,9 @@ class Mangakakalot:
         """
         response = scraper.get(url).text
         soup = BeautifulSoup(response, 'lxml')
-        info_block = soup.find("div", attrs={"class":"story-info-right"})
+        info_block = soup.find("ul", attrs={"class":"manga-info-text"})
         title = info_block.find("h1").text.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
-        chapters = [[li.find("a").text, li.find("a")['href']] for li in soup.find("div", attrs={"class":'panel-story-chapter-list'}).find("ul", attrs={"class":"row-content-chapter"}).find_all("li", attrs={"class":"a-h"})]
+        chapters = [[li.find("a").text, li.find("a")['href']] for li in soup.find("div", attrs={"class":'manga-info-chapter'}).find("div", attrs={"class":"chapter-list"}).find_all("div", attrs={"class":"row"})]
         for i, chap in enumerate(chapters[::-1]):
             chapter = chap[0].replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
             c_url = chap[1]
