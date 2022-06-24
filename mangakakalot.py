@@ -1,8 +1,7 @@
 import json
-import os
 import cloudscraper
 from bs4 import BeautifulSoup
-import urllib3
+from manganato import MangaNato
 
 scraper = cloudscraper.create_scraper(browser='chrome', delay=7)
 
@@ -152,65 +151,36 @@ class Mangakakalot:
         status = main_table[2].text.replace("Status : ", "") if "Status" in main_table[2].text else "Updating"
         info_data['Status'] = status
         return info_data
-    
-    
-    def download_chapter(self, url, path):
-        """Download a particular chapter of a manga.
-
-        Args:
-            url (str): Chapter url.
-            path (str): Path to the folder to download.
-        """
-        img_urls = self.get_chapter_images(url)
-        response = scraper.get(url).text
-        soup = BeautifulSoup(response, 'lxml')
-        a_lst = soup.find("div", attrs={"class": "breadcrumb breadcrumbs bred_doc"}).find_all("a", attrs={"itemprop":"item"})
-        title = a_lst[1].find("span").text.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
-        chapter = a_lst[2].find("span").text.strip().replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
-        if os.path.exists(path) and os.path.exists(os.path.join(path, title)):
-            # Folder with title name already exists
-            if not os.path.exists(os.path.join(path, title, chapter)):
-                os.mkdir(os.path.join(path, title, chapter))
-        else:
-            os.mkdir(os.path.join(path, title))
-            os.mkdir(os.path.join(path, title, chapter))
-        
-        print(f"Downloading {len(img_urls)} images!")
-        http = urllib3.PoolManager()
-        for i, img in enumerate(img_urls):
-            r = http.request("GET", img, headers=self.header)
-            with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
-                file.write(r.data)
         
     
-    def download_manga(self, url: str, path: str):
-        """Download all the chapters for a manga
+    def get_manga_chapters(self, url: str):
+        """Get imgs url for all the chapters for a manga.
 
         Args:
             url (str): URL for the manga
             path (str): Path to download folder
+        
+        Returns:
+            tuple: Returns a tulpe containing dict and str
         """
+        all_chap = {}
         response = scraper.get(url).text
         soup = BeautifulSoup(response, 'lxml')
         info_block = soup.find("ul", attrs={"class":"manga-info-text"})
-        title = info_block.find("h1").text.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
+        title = info_block.find("h1").text#.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
         chapters = [[li.find("a").text, li.find("a")['href']] for li in soup.find("div", attrs={"class":'manga-info-chapter'}).find("div", attrs={"class":"chapter-list"}).find_all("div", attrs={"class":"row"})]
         for i, chap in enumerate(chapters[::-1]):
-            chapter = chap[0].replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
+            chapter = chap[0]#.replace(":", "").replace("?", "").replace("<", "").replace(">","").replace("|", "")
             c_url = chap[1]
+            if "manganato" in c_url:
+                c_imgs = MangaNato().get_chapter_images(c_url)
             c_imgs = self.get_chapter_images(c_url)
-            if os.path.exists(path) and os.path.exists(os.path.join(path, title)):
-            # Folder with title name already exists
-                if not os.path.exists(os.path.join(path, title, chapter)):
-                    os.mkdir(os.path.join(path, title, chapter))
-            else:
-                os.mkdir(os.path.join(path, title))
-                os.mkdir(os.path.join(path, title, chapter))
-            http = urllib3.PoolManager()
-            for i, img in enumerate(c_imgs):
-                r = http.request("GET", img, headers=self.header)
-                with open(f"{os.path.join(path, title, chapter, str(i + 1))}.png", 'wb') as file:
-                    file.write(r.data)
+            all_chap[str(i + 1)] = {
+                "Name": chapter,
+                "Urls": c_imgs
+            }
+        return (all_chap, title)
+            
     
         
     def get_genre_list(self, url, page_limit: int = 1) -> dict:
