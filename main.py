@@ -1,5 +1,5 @@
 import json
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from mangakakalot import Mangakakalot
 from manganato import MangaNato
 
@@ -21,7 +21,7 @@ def recent_update():
         data = manganato.get_recent_updates(pg_limit)
     elif site == "mangakakalot":
         data = mangakakalot.get_recent_updates(pg_limit)
-    return data
+    return jsonify(data)
         
 
 @app.route("/genre-link", methods=['POST'])
@@ -132,8 +132,8 @@ def search():
         respo = manganato.search_manga(name, limit)
     elif site == "mangakakalot":
         respo = mangakakalot.search_manga(name, limit)
-    return respo
+    return jsonify(respo)
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5932, debug=True)
+    app.run(host="0.0.0.0", port=5932, debug=False)

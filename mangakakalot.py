@@ -39,16 +39,16 @@ class Mangakakalot:
         return link
 
 
-    def get_recent_updates(self, page_limit: int = 1) -> dict:
+    def get_recent_updates(self, page_limit: int = 1) -> list:
         """Get the recently added manga.
 
         Args:
             page_limit (int, optional): No. of pages to get results from. Defaults to 1.
 
         Returns:
-            dict: Returns a dict containing multiple dicts.
+            list: Returns a list containing multiple dicts.
         """
-        recent_data = {}
+        recent_data = []
         i = 1
         for n in range(1, page_limit + 1):
             url = f"https://mangakakalot.com/manga_list?type=latest&category=all&state=all&page={str(n)}"
@@ -60,26 +60,28 @@ class Mangakakalot:
                 img = nsoup.find("img")['src']
                 title, url = nsoup.find("h3").find("a").text, nsoup.find("h3").find("a")['href']
                 lch = nsoup.find_all("a")[2].text
-                recent_data[str(i)] = {
+                data = {
                     "Title": title,
                     "Cover": img,
                     "Url": url,
-                    "Latest_Chapter": lch
+                    "Latest_Chapter": lch,
+                    "id": i
                 }
+                recent_data.insert(i, data)
                 i += 1
         return recent_data
 
 
-    def search_manga(self, name: str, page_limit: int = 1):
+    def search_manga(self, name: str, page_limit: int = 1) -> list:
         """Search for a manga
 
         Args:
             name (str): Name of the manga.
             page_limit (int, optional): No. of pages to get results from. Defaults to 1.
         Returns:
-            dict: Returns a dict containing multiple dicts.
+            list: Returns a list containing multiple dicts.
         """
-        search_data = {}
+        search_data = []
         fname = name.replace(" ", "_").replace("!", "").replace(",", "").replace("?", "").replace("~", "").replace("|", "").replace("(", "").replace(")", "")
         i = 1
         for n in range(1, page_limit + 1):
@@ -93,12 +95,14 @@ class Mangakakalot:
                 title = nsoup.find("h3").find("a").text
                 url = nsoup.find("h3").find("a")['href']
                 chap = nsoup.find_all("em", attrs={"class":"story_chapter"})[0].find("a").text.strip()
-                search_data[str(i)] = {
+                data = {
                     "Title": title,
                     "Cover": img,
                     "Url": url,
-                    "Latest_Chapter": chap
+                    "Latest_Chapter": chap,
+                    "id": i
                 }
+                search_data.insert(i, data)
                 i += 1
         return search_data
 

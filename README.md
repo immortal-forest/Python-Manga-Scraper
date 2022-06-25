@@ -27,15 +27,16 @@
         site = from Available sites (lower case)
     
     Response:
-        {
-            "1": {
+        [
+            {
                 "Cover": "...",
                 "Latest_Chapter": "...",
                 "Title": "...",
-                "Url": "..."
+                "Url": "...",
+                "id": ...
             },
             ...
-        }
+        ]
 
 </li>
 
@@ -193,15 +194,16 @@ Note: state & type only in some sites. For more info see [genre](/genre.json) fi
                 "site": ""
             }
     Response:
-        {
-            "1": {
+        [
+            {
                 "Cover": "...",
                 "Latest_Chapter": "...",
                 "Title": "...",
-                "Url": "..."
+                "Url": "...",
+                "id": ...
             },
             ...
-        }
+        ]
 
 </li>
 
